@@ -125,6 +125,46 @@
             padding: 8px;
         }
 
+        /* راهنمای خطی و ظریف کلاس‌های خطر؛ مستقل از عملکرد گیج */
+        .risk-legend {
+            width: min(100%, 270px);
+            margin-top: 10px;
+            padding: 0 2px;
+        }
+
+        .risk-legend-bar {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            direction: rtl;
+            height: 5px;
+            overflow: hidden;
+            border-radius: 999px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.10);
+        }
+
+        .risk-legend-bar span:nth-child(1) { background: #22C55E; }
+        .risk-legend-bar span:nth-child(2) { background: #84CC16; }
+        .risk-legend-bar span:nth-child(3) { background: #EAB308; }
+        .risk-legend-bar span:nth-child(4) { background: #F97316; }
+        .risk-legend-bar span:nth-child(5) { background: #EF4444; }
+        .risk-legend-bar span:nth-child(6) { background: #9333EA; }
+
+        .risk-legend-labels {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            direction: rtl;
+            gap: 2px;
+            margin-top: 4px;
+        }
+
+        .risk-legend-labels span {
+            color: #64748B;
+            font-size: clamp(7px, 1.8vw, 9px);
+            line-height: 1.35;
+            text-align: center;
+            white-space: nowrap;
+        }
+
         .compact-card { flex-shrink: 0; }
         .guide-card { position: relative; }
         .guide-card[open] { z-index: 50; }
@@ -295,6 +335,25 @@
                 </div>
             </div>
 
+            <div class="risk-legend" aria-label="راهنمای رنگی سطح خطر">
+                <div class="risk-legend-bar" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="risk-legend-labels">
+                    <span>بسیار کم</span>
+                    <span>کم</span>
+                    <span>متوسط</span>
+                    <span>زیاد</span>
+                    <span>بسیار زیاد</span>
+                    <span>بحرانی</span>
+                </div>
+            </div>
+
             <div id="update-badge" class="text-[10px] text-slate-500 font-medium mt-2 text-center" aria-live="polite">
                 در حال بررسی داده‌های امروز...
             </div>
@@ -351,7 +410,6 @@
     const CIRCUMFERENCE = 2 * Math.PI * 89;
     const REQUIRED_COVERAGE_PERCENT = 100;
     const TEHRAN_TIME_ZONE = 'Asia/Tehran';
-
     let lastObservedTehranDate = null;
     let midnightCheckTimer = null;
     let datePollTimer = null;
@@ -372,13 +430,12 @@
 
         const values = {};
         parts.forEach(part => { values[part.type] = part.value; });
-
         return `${values.year}-${values.month}-${values.day}`;
     }
 
+    // زمان‌بندی بررسی تغییر روز بر اساس ساعت رسمی تهران، نه ساعت دستگاه کاربر.
     function getMillisecondsUntilTehranMidnight() {
         const now = new Date();
-
         const parts = new Intl.DateTimeFormat('en-GB', {
             timeZone: TEHRAN_TIME_ZONE,
             hour: '2-digit',
@@ -389,11 +446,10 @@
 
         const clock = {};
         parts.forEach(part => { clock[part.type] = Number(part.value); });
+        const elapsed = ((clock.hour * 60 + clock.minute) * 60 + clock.second) * 1000
+            + now.getMilliseconds();
 
-        const elapsed =
-            ((clock.hour * 60 + clock.minute) * 60 + clock.second) * 1000 +
-            now.getMilliseconds();
-
+        // یک ثانیه پس از نیمه‌شب بررسی می‌کنیم تا تاریخ روز جدید قطعی شده باشد.
         return Math.max(1000, 86400000 - elapsed + 1000);
     }
 
@@ -409,13 +465,14 @@
 
         todayDataRetryTimer = setTimeout(async () => {
             todayDataRetryTimer = null;
+
+            // حتی اگر نسخه ذخیره‌شده معتبر باشد، هر ۱۰ دقیقه نسخه آنلاین بررسی می‌شود.
             await loadData();
         }, TODAY_DATA_RETRY_MS);
     }
 
     function handleTehranDateChange() {
         const currentDate = getTehranISODate();
-
         if (lastObservedTehranDate === null) {
             lastObservedTehranDate = currentDate;
             return false;
@@ -425,17 +482,13 @@
 
         lastObservedTehranDate = currentDate;
         cancelTodayDataRetry();
-
-        showUnavailable('روز جدید آغاز شده است؛ در حال بررسی داده همان روز...');
+        showUnavailable('روز جدید در تهران آغاز شده است؛ در حال بررسی داده همان روز...');
         loadData();
-
         return true;
     }
 
     function scheduleTehranMidnightCheck() {
-        if (midnightCheckTimer !== null) {
-            clearTimeout(midnightCheckTimer);
-        }
+        if (midnightCheckTimer !== null) clearTimeout(midnightCheckTimer);
 
         midnightCheckTimer = setTimeout(() => {
             handleTehranDateChange();
@@ -447,18 +500,16 @@
         lastObservedTehranDate = getTehranISODate();
         scheduleTehranMidnightCheck();
 
+        // پشتیبان برای زمانی که مرورگر در پس‌زمینه، خواب یا تعلیق بوده است.
         if (datePollTimer !== null) clearInterval(datePollTimer);
         datePollTimer = setInterval(handleTehranDateChange, 30000);
 
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) handleTehranDateChange();
         });
-
         window.addEventListener('focus', handleTehranDateChange);
     }
 
-    // تبدیل تاریخ میلادی رکورد پیش‌بینی به تاریخ شمسی
-    // این تابع از generated_at استفاده نمی‌کند.
     function formatPersianForecastDate(isoDate) {
         const match = String(isoDate || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
         if (!match) return 'نامشخص';
@@ -466,8 +517,8 @@
         const year = Number(match[1]);
         const month = Number(match[2]);
         const day = Number(match[3]);
-
         const date = new Date(Date.UTC(year, month - 1, day, 12));
+
         if (Number.isNaN(date.getTime())) return 'نامشخص';
 
         return new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
@@ -500,8 +551,6 @@
         const maskCircle = document.getElementById('gauge-progress-circle');
         const ratio = Math.max(0, Math.min(1, Number(value) / MAX_VALUE));
         const offset = CIRCUMFERENCE * ratio;
-
-        // حرکت گیج از ساعت ۱۲ در جهت عقربه‌های ساعت
         maskCircle.style.strokeDashoffset = -offset;
     }
 
@@ -514,7 +563,7 @@
 
         if (value >= 50) {
             tips = [
-                'از ورود غیرضروری به ارتفاعات دراک خودداری کنید.',
+                'خطر بسیار شدید است؛ از ورود غیرضروری به ارتفاعات دراک خودداری کنید.',
                 'از روشن کردن آتش و هرگونه فعالیت جرقه‌زا پرهیز کنید.',
                 'در صورت مشاهده دود یا آتش، از محل فاصله بگیرید و با ۱۲۵ تماس بگیرید.'
             ];
@@ -543,7 +592,6 @@
 
         const list = document.getElementById('safety-tips');
         list.replaceChildren();
-
         tips.forEach(text => {
             const item = document.createElement('li');
             item.textContent = text;
@@ -555,7 +603,6 @@
         const pill = document.getElementById('risk-pill');
         pill.textContent = 'نامشخص';
         pill.style.backgroundColor = '#64748B';
-
         clearGauge();
 
         document.getElementById('update-badge').textContent =
@@ -577,7 +624,7 @@
 
     function validateDateSummary(summary, todayISO) {
         if (!summary || summary.date !== todayISO) {
-            throw new Error('برای تاریخ جاری داده‌ای وجود ندارد.');
+            throw new Error('برای تاریخ امروز داده‌ای وجود ندارد.');
         }
 
         const mean = Number(summary.mean_fwi);
@@ -603,24 +650,15 @@
             coverage < REQUIRED_COVERAGE_PERCENT ||
             summary.complete !== true
         ) {
-            throw new Error('پوشش داده‌های روز جاری کامل نیست.');
+            throw new Error('پوشش داده‌های امروز کامل نیست.');
         }
 
-        return {
-            mean,
-            validPoints,
-            expectedPoints,
-            coverage
-        };
+        return { mean, validPoints, expectedPoints, coverage };
     }
 
     function getValidToday(data, todayISO = getTehranISODate()) {
         if (!data || !Array.isArray(data.date_summaries)) return null;
-
-        const summary = data.date_summaries.find(
-            item => item && item.date === todayISO
-        );
-
+        const summary = data.date_summaries.find(item => item && item.date === todayISO);
         if (!summary) return null;
 
         try {
@@ -629,7 +667,7 @@
                 validated: validateDateSummary(summary, todayISO)
             };
         } catch (error) {
-            console.warn('خلاصه روز جاری معتبر نیست:', error.message);
+            console.warn('خلاصه امروز معتبر نیست:', error.message);
             return null;
         }
     }
@@ -647,13 +685,12 @@
         try {
             localStorage.setItem(CACHE_KEY, JSON.stringify(data));
         } catch (_) {
-            // در صورت نبود امکان ذخیره‌سازی، داده آنلاین همچنان نمایش داده می‌شود.
+            // اگر ذخیره‌سازی مرورگر در دسترس نباشد، داده آنلاین همچنان نمایش داده می‌شود.
         }
     }
 
     function renderToday(data, validToday) {
         cancelTodayDataRetry();
-
         const value = validToday.validated.mean;
         const pill = document.getElementById('risk-pill');
 
@@ -663,10 +700,9 @@
         updateGauge(value);
         updateTips(value);
 
-        // تاریخ واقعی پیش‌بینی انتخاب‌شده نمایش داده می‌شود.
-        // تاریخ تولید فایل آرشیو در نمایش صفحه استفاده نمی‌شود.
+        // تاریخ نمایشی از تاریخ پیش‌بینی انتخاب‌شده می‌آید، نه زمان تولید فایل آرشیو.
+        // بنابراین تولید فایل در ۹ آبان می‌تواند پیش‌بینی ۱۰ آبان را نشان دهد.
         const forecastDate = formatPersianForecastDate(validToday.summary.date);
-
         document.getElementById('update-badge').textContent =
             forecastDate !== 'نامشخص'
                 ? `تاریخ پیش‌بینی: ${forecastDate}`
@@ -680,10 +716,10 @@
         const refreshButton = document.getElementById('refresh-button');
         refreshButton.disabled = true;
 
-        // ابتدا داده ذخیره‌شده همان روز نمایش داده می‌شود.
         const cachedData = readCache();
         const cachedToday = getValidToday(cachedData, requestDate);
 
+        // داده ذخیره‌شده فقط در صورتی نمایش داده می‌شود که متعلق به امروز تهران و کامل باشد.
         if (cachedToday) {
             renderToday(cachedData, cachedToday);
         } else {
@@ -691,7 +727,6 @@
         }
 
         try {
-            // سپس نسخه جدید آرشیو از سرور دریافت می‌شود.
             const response = await fetch(DATA_URL + '?v=' + Date.now(), {
                 cache: 'no-store'
             });
@@ -702,21 +737,18 @@
 
             const latestData = await response.json();
 
-            // اگر هنگام دریافت فایل روز تهران تغییر کرده باشد، درخواست دوباره اجرا می‌شود.
+            // اگر هنگام دریافت فایل نیمه‌شب تهران گذشته باشد، پاسخ را برای تاریخ قبلی مصرف نکن.
             const currentDate = getTehranISODate();
-
             if (currentDate !== requestDate) {
                 lastObservedTehranDate = currentDate;
-
-                showUnavailable('روز جدید آغاز شده است؛ داده همان روز دوباره بررسی می‌شود...');
-
+                showUnavailable('روز جدید در تهران آغاز شده است؛ داده همان روز دوباره بررسی می‌شود...');
                 refreshButton.disabled = false;
                 return loadData();
             }
 
-            // انتخاب رکورد روز جاری؛ بدون تاریخ ثابت
             const latestToday = getValidToday(latestData, requestDate);
 
+            // نسخه آنلاین نیز باید داده کامل و متعلق به امروز تهران داشته باشد.
             if (!latestToday) {
                 if (cachedToday) {
                     scheduleTodayDataRetry();
@@ -724,30 +756,26 @@
                     showUnavailable('داده کامل روز جاری در دسترس نیست؛ بررسی خودکار ادامه پیدا می‌کند.');
                     scheduleTodayDataRetry();
                 }
-
                 return;
             }
 
-            // ذخیره نسخه جدید و جایگزینی مقدار گیج
             saveCache(latestData);
             renderToday(latestData, latestToday);
-
         } catch (error) {
             console.error('خطا در دریافت یا اعتبارسنجی داده:', error);
 
+            // داده کش‌شده فقط برای همان تاریخ درخواست معتبر است؛ روز قبل هرگز به‌عنوان امروز نشان داده نمی‌شود.
             if (getTehranISODate() !== requestDate) {
-                showUnavailable('روز جدید آغاز شده است؛ داده همان روز پس از دریافت نمایش داده می‌شود.');
+                showUnavailable('روز جدید در تهران آغاز شده است؛ داده همان روز پس از دریافت نمایش داده می‌شود.');
                 return;
             }
 
-            // در صورت خطای شبکه، فقط Cache معتبر همان روز باقی می‌ماند.
             if (cachedToday) {
                 scheduleTodayDataRetry();
             } else {
-                showUnavailable('داده روز جاری در دسترس نیست؛ بررسی خودکار ادامه پیدا می‌کند.');
+                showUnavailable('داده روز جاری در دسترس نیست؛ مقدار روزهای دیگر نمایش داده نمی‌شود. بررسی خودکار ادامه پیدا می‌کند.');
                 scheduleTodayDataRetry();
             }
-
         } finally {
             refreshButton.disabled = false;
         }
@@ -757,11 +785,7 @@
         const el = document.getElementById('visitor-count');
         if (!el) return;
 
-        let localViews = parseInt(
-            localStorage.getItem('derak_visits') || '142',
-            10
-        );
-
+        let localViews = parseInt(localStorage.getItem('derak_visits') || '142', 10);
         localViews += 1;
         localStorage.setItem('derak_visits', localViews.toString());
 
