@@ -282,7 +282,6 @@
                             stroke-dashoffset="559.2"
                         />
                     </svg>
-
                     <div class="gauge-center-hole">
                         <div class="text-rose-500 mb-2">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -407,14 +406,13 @@
 
         todayDataRetryTimer = setTimeout(async () => {
             todayDataRetryTimer = null;
-
-            // حتی اگر نسخه ذخیره‌شده معتبر باشد، هر ۱۰ دقیقه نسخه آنلاین بررسی می‌شود.
             await loadData();
         }, TODAY_DATA_RETRY_MS);
     }
 
     function handleTehranDateChange() {
         const currentDate = getTehranISODate();
+
         if (lastObservedTehranDate === null) {
             lastObservedTehranDate = currentDate;
             return false;
@@ -424,13 +422,17 @@
 
         lastObservedTehranDate = currentDate;
         cancelTodayDataRetry();
-        showUnavailable('روز جدید در تهران آغاز شده است؛ در حال بررسی داده همان روز...');
+
+        showUnavailable('روز جدید آغاز شده است؛ در حال بررسی داده همان روز...');
         loadData();
+
         return true;
     }
 
     function scheduleTehranMidnightCheck() {
-        if (midnightCheckTimer !== null) clearTimeout(midnightCheckTimer);
+        if (midnightCheckTimer !== null) {
+            clearTimeout(midnightCheckTimer);
+        }
 
         midnightCheckTimer = setTimeout(() => {
             handleTehranDateChange();
@@ -442,18 +444,20 @@
         lastObservedTehranDate = getTehranISODate();
         scheduleTehranMidnightCheck();
 
-        // پشتیبان برای زمانی که مرورگر در پس‌زمینه، خواب یا تعلیق بوده است.
+        // پشتیبان برای زمانی که مرورگر در پس‌زمینه یا حالت خواب بوده است.
         if (datePollTimer !== null) clearInterval(datePollTimer);
         datePollTimer = setInterval(handleTehranDateChange, 30000);
 
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) handleTehranDateChange();
         });
+
         window.addEventListener('focus', handleTehranDateChange);
     }
 
     function formatPersianUpdateDate(isoDateTime) {
         if (!isoDateTime) return 'نامشخص';
+
         const date = new Date(isoDateTime);
         if (Number.isNaN(date.getTime())) return 'نامشخص';
 
@@ -487,6 +491,8 @@
         const maskCircle = document.getElementById('gauge-progress-circle');
         const ratio = Math.max(0, Math.min(1, Number(value) / MAX_VALUE));
         const offset = CIRCUMFERENCE * ratio;
+
+        // حرکت گیج از نقطه ساعت ۱۲ و در جهت عقربه‌های ساعت
         maskCircle.style.strokeDashoffset = -offset;
     }
 
@@ -499,7 +505,7 @@
 
         if (value >= 50) {
             tips = [
-                'خطر بسیار شدید است؛ از ورود غیرضروری به ارتفاعات دراک خودداری کنید.',
+                'از ورود غیرضروری به ارتفاعات دراک خودداری کنید.',
                 'از روشن کردن آتش و هرگونه فعالیت جرقه‌زا پرهیز کنید.',
                 'در صورت مشاهده دود یا آتش، از محل فاصله بگیرید و با ۱۲۵ تماس بگیرید.'
             ];
@@ -528,6 +534,7 @@
 
         const list = document.getElementById('safety-tips');
         list.replaceChildren();
+
         tips.forEach(text => {
             const item = document.createElement('li');
             item.textContent = text;
@@ -539,6 +546,7 @@
         const pill = document.getElementById('risk-pill');
         pill.textContent = 'نامشخص';
         pill.style.backgroundColor = '#64748B';
+
         clearGauge();
 
         document.getElementById('update-badge').textContent =
@@ -560,7 +568,7 @@
 
     function validateDateSummary(summary, todayISO) {
         if (!summary || summary.date !== todayISO) {
-            throw new Error('برای تاریخ امروز داده‌ای وجود ندارد.');
+            throw new Error('برای تاریخ جاری داده‌ای وجود ندارد.');
         }
 
         const mean = Number(summary.mean_fwi);
@@ -586,7 +594,7 @@
             coverage < REQUIRED_COVERAGE_PERCENT ||
             summary.complete !== true
         ) {
-            throw new Error('پوشش داده‌های امروز کامل نیست.');
+            throw new Error('پوشش داده‌های روز جاری کامل نیست.');
         }
 
         return { mean, validPoints, expectedPoints, coverage };
@@ -594,13 +602,19 @@
 
     function getValidToday(data, todayISO = getTehranISODate()) {
         if (!data || !Array.isArray(data.date_summaries)) return null;
-        const summary = data.date_summaries.find(item => item && item.date === todayISO);
+
+        const summary = data.date_summaries.find(
+            item => item && item.date === todayISO
+        );
+
         if (!summary) return null;
 
         try {
-            return { validated: validateDateSummary(summary, todayISO) };
+            return {
+                validated: validateDateSummary(summary, todayISO)
+            };
         } catch (error) {
-            console.warn('خلاصه امروز معتبر نیست:', error.message);
+            console.warn('خلاصه روز جاری معتبر نیست:', error.message);
             return null;
         }
     }
@@ -618,12 +632,13 @@
         try {
             localStorage.setItem(CACHE_KEY, JSON.stringify(data));
         } catch (_) {
-            // اگر ذخیره‌سازی مرورگر در دسترس نباشد، داده آنلاین همچنان نمایش داده می‌شود.
+            // اگر ذخیره‌سازی مرورگر در دسترس نباشد، داده آنلاین نمایش داده می‌شود.
         }
     }
 
     function renderToday(data, validToday) {
         cancelTodayDataRetry();
+
         const value = validToday.validated.mean;
         const pill = document.getElementById('risk-pill');
 
@@ -633,7 +648,9 @@
         updateGauge(value);
         updateTips(value);
 
+        // فقط تاریخ نمایش داده می‌شود؛ ساعت به‌روزرسانی نمایش داده نمی‌شود.
         const generatedAt = formatPersianUpdateDate(data.generated_at_tehran);
+
         document.getElementById('update-badge').textContent =
             generatedAt !== 'نامشخص'
                 ? `آخرین به‌روزرسانی: ${generatedAt}`
@@ -647,10 +664,10 @@
         const refreshButton = document.getElementById('refresh-button');
         refreshButton.disabled = true;
 
+        // مرحله اول: بررسی فوری آرشیو ذخیره‌شده در مرورگر
         const cachedData = readCache();
         const cachedToday = getValidToday(cachedData, requestDate);
 
-        // داده ذخیره‌شده فقط در صورتی نمایش داده می‌شود که متعلق به امروز تهران و کامل باشد.
         if (cachedToday) {
             renderToday(cachedData, cachedToday);
         } else {
@@ -658,6 +675,7 @@
         }
 
         try {
+            // مرحله دوم: دریافت نسخه جدید آرشیو از سرور
             const response = await fetch(DATA_URL + '?v=' + Date.now(), {
                 cache: 'no-store'
             });
@@ -668,45 +686,54 @@
 
             const latestData = await response.json();
 
-            // اگر هنگام دریافت فایل نیمه‌شب تهران گذشته باشد، پاسخ را برای تاریخ قبلی مصرف نکن.
+            // اگر هنگام دریافت فایل نیمه‌شب گذشته باشد، تاریخ دوباره بررسی شود.
             const currentDate = getTehranISODate();
+
             if (currentDate !== requestDate) {
                 lastObservedTehranDate = currentDate;
-                showUnavailable('روز جدید در تهران آغاز شده است؛ داده همان روز دوباره بررسی می‌شود...');
+
+                showUnavailable('روز جدید آغاز شده است؛ داده همان روز دوباره بررسی می‌شود...');
+
                 refreshButton.disabled = false;
                 return loadData();
             }
 
+            // مرحله سوم: فقط رکورد تاریخ جاری انتخاب می‌شود.
             const latestToday = getValidToday(latestData, requestDate);
 
-            // نسخه آنلاین نیز باید داده کامل و متعلق به امروز تهران داشته باشد.
             if (!latestToday) {
                 if (cachedToday) {
+                    // داده معتبر Cache حفظ می‌شود؛ نسخه آنلاین بعداً دوباره بررسی خواهد شد.
                     scheduleTodayDataRetry();
                 } else {
                     showUnavailable('داده کامل روز جاری در دسترس نیست؛ بررسی خودکار ادامه پیدا می‌کند.');
                     scheduleTodayDataRetry();
                 }
+
                 return;
             }
 
+            // مرحله چهارم: ذخیره آرشیو جدید و جایگزینی داده روی گیج
             saveCache(latestData);
             renderToday(latestData, latestToday);
+
         } catch (error) {
             console.error('خطا در دریافت یا اعتبارسنجی داده:', error);
 
-            // داده کش‌شده فقط برای همان تاریخ معتبر است؛ روز قبل به‌عنوان امروز نشان داده نمی‌شود.
+            // اگر روز عوض شده باشد، اطلاعات روز قبل نمایش داده نمی‌شود.
             if (getTehranISODate() !== requestDate) {
-                showUnavailable('روز جدید در تهران آغاز شده است؛ داده همان روز پس از دریافت نمایش داده می‌شود.');
+                showUnavailable('روز جدید آغاز شده است؛ داده همان روز پس از دریافت نمایش داده می‌شود.');
                 return;
             }
 
             if (cachedToday) {
+                // در صورت خطای شبکه، داده معتبر همان روز Cache باقی می‌ماند.
                 scheduleTodayDataRetry();
             } else {
-                showUnavailable('داده روز جاری در دسترس نیست؛ مقدار روزهای دیگر نمایش داده نمی‌شود. بررسی خودکار ادامه پیدا می‌کند.');
+                showUnavailable('داده روز جاری در دسترس نیست؛ بررسی خودکار ادامه پیدا می‌کند.');
                 scheduleTodayDataRetry();
             }
+
         } finally {
             refreshButton.disabled = false;
         }
@@ -716,7 +743,11 @@
         const el = document.getElementById('visitor-count');
         if (!el) return;
 
-        let localViews = parseInt(localStorage.getItem('derak_visits') || '142', 10);
+        let localViews = parseInt(
+            localStorage.getItem('derak_visits') || '142',
+            10
+        );
+
         localViews += 1;
         localStorage.setItem('derak_visits', localViews.toString());
 
@@ -811,6 +842,7 @@
         }
     }
 
+    // اجرای کنترل تاریخ تهران و بارگذاری اولیه اطلاعات
     startTehranDateWatcher();
     loadData();
     initVisitorCounter();
