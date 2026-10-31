@@ -2,7 +2,7 @@ import os
 import json
 import csv
 from datetime import datetime, timedelta
-import pytz
+from zoneinfo import ZoneInfo
 import requests
 from shapely.geometry import shape
 import geopandas as gpd
@@ -36,8 +36,8 @@ def get_risk_info(fwi):
 def main():
     print("شروع اجرای محاسبات پیش‌بینی خطر حریق کوهستان دراک...")
     
-    # تنظیم تاریخ و بازه زمانی به وقت تهران
-    tehran_tz = pytz.timezone("Asia/Tehran")
+    # تنظیم تاریخ و بازه زمانی به وقت تهران با استفاده از ماژول استاندارد zoneinfo
+    tehran_tz = ZoneInfo("Asia/Tehran")
     now_tehran = datetime.now(tehran_tz)
     
     target_date_str = os.environ.get("TARGET_DATE", "").strip()
