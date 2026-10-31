@@ -73,24 +73,18 @@
             justify-content: center;
         }
 
-        @property --progress-deg {
-            syntax: "<angle>";
-            inherits: false;
-            initial-value: 0deg;
-        }
-
         .gauge-conic-ring {
-            --progress-deg: 0deg;
             width: 100%;
             height: 100%;
             border-radius: 50%;
             background: conic-gradient(
                 from 0deg at 50% 50%,
-                #22C55E 0% 8.6667%,
-                #EAB308 8.6667% 35.5%,
-                #F97316 35.5% 63.3333%,
-                #EF4444 63.3333% 83.3333%,
-                #9333EA 83.3333% 100%
+                #22C55E 0%,
+                #84CC16 18%,
+                #EAB308 36%,
+                #F97316 58%,
+                #EF4444 80%,
+                #9333EA 100%
             );
             display: flex;
             align-items: center;
@@ -99,22 +93,21 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
         }
 
-        /* قسمت استفاده‌نشده گیج خاکستری می‌ماند؛ رنگ فعال از ساعت ۱۲ شروع می‌شود. */
-        .gauge-conic-ring::after {
-            content: "";
+        .gauge-mask-svg {
             position: absolute;
             inset: 0;
-            border-radius: 50%;
-            background: conic-gradient(
-                from 0deg,
-                transparent 0deg var(--progress-deg),
-                #E2E8F0 var(--progress-deg) 360deg
-            );
-            -webkit-mask: radial-gradient(circle, transparent 0 77%, #000 78% 100%);
-            mask: radial-gradient(circle, transparent 0 77%, #000 78% 100%);
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
             pointer-events: none;
-            z-index: 1;
-            transition: --progress-deg 0.8s ease;
+            z-index: 2;
+        }
+
+        #gauge-progress-circle {
+            fill: none;
+            stroke: #E2E8F0;
+            stroke-width: 22;
+            transition: stroke-dashoffset 0.8s ease;
         }
 
         .gauge-center-hole {
@@ -270,16 +263,26 @@
             </summary>
             <div class="guide-content text-amber-900 space-y-1">
                 <p>• شاخص هواشناسی حریق بر اساس داده‌های مدل هواشناسی و نقاط نمونه‌برداری در محدوده دراک محاسبه و خلاصه می‌شود.</p>
-                <p>• سطح خطر با توجه به میانگین مقادیر معتبر شاخص در محدوده تعیین می‌شود؛ عدد شاخص در مرکز گیج نمایش داده نمی‌شود.</p>
-                <p>• سامانه فقط داده کامل و معتبر مربوط به امروز در تهران را نمایش می‌دهد.</p>
-                <p>• در صورت نبود داده معتبر برای امروز، مقدار روزهای دیگر به‌جای امروز نمایش داده نمی‌شود.</p>
-                <p>• در شرایط بحرانی از ورود به ارتفاعات دراک خودداری کنید.</p>
+                <p>• سطح خطر با توجه به میانگین مقادیر معتبر شاخص در محدوده تعیین می‌شود.</p>
+                <p>• سامانه داده کامل مربوط به روز جاری را نمایش می‌دهد.</p>
+                <p>• در صورت نبود داده برای روز جاری، مقدار روزهای گذشته یا آینده به‌جای آن نمایش داده نمی‌شود.</p>
             </div>
         </details>
 
         <section class="gauge-section relative z-10" aria-label="ارزیابی خطر حریق">
             <div class="gauge-wrap">
                 <div class="gauge-conic-ring">
+                    <svg class="gauge-mask-svg" viewBox="0 0 200 200" aria-hidden="true">
+                        <circle
+                            id="gauge-progress-circle"
+                            cx="100"
+                            cy="100"
+                            r="89"
+                            stroke-dasharray="559.2"
+                            stroke-dashoffset="559.2"
+                        />
+                    </svg>
+
                     <div class="gauge-center-hole">
                         <div class="text-rose-500 mb-2">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -294,7 +297,7 @@
             </div>
 
             <div id="update-badge" class="text-[10px] text-slate-500 font-medium mt-2 text-center" aria-live="polite">
-                در حال بررسی داده معتبر امروز...
+                در حال بررسی داده‌های امروز...
             </div>
         </section>
 
@@ -404,12 +407,9 @@
 
         todayDataRetryTimer = setTimeout(async () => {
             todayDataRetryTimer = null;
-            const today = getTehranISODate();
 
-            // تا زمانی که آرشیو، داده کامل همان روز را نداشته باشد، هر ۱۰ دقیقه دوباره بررسی می‌شود.
-            if (!getValidToday(readCache(), today)) {
-                await loadData();
-            }
+            // حتی اگر نسخه ذخیره‌شده معتبر باشد، هر ۱۰ دقیقه نسخه آنلاین بررسی می‌شود.
+            await loadData();
         }, TODAY_DATA_RETRY_MS);
     }
 
@@ -452,7 +452,7 @@
         window.addEventListener('focus', handleTehranDateChange);
     }
 
-    function formatPersianDateTime(isoDateTime) {
+    function formatPersianUpdateDate(isoDateTime) {
         if (!isoDateTime) return 'نامشخص';
         const date = new Date(isoDateTime);
         if (Number.isNaN(date.getTime())) return 'نامشخص';
@@ -461,10 +461,7 @@
             timeZone: TEHRAN_TIME_ZONE,
             year: 'numeric',
             month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hourCycle: 'h23'
+            day: 'numeric'
         }).format(date);
     }
 
@@ -487,15 +484,14 @@
     }
 
     function updateGauge(value) {
-        const ring = document.querySelector('.gauge-conic-ring');
+        const maskCircle = document.getElementById('gauge-progress-circle');
         const ratio = Math.max(0, Math.min(1, Number(value) / MAX_VALUE));
-        const progressDegrees = ratio * 360;
-        ring.style.setProperty('--progress-deg', `${progressDegrees}deg`);
+        const offset = CIRCUMFERENCE * ratio;
+        maskCircle.style.strokeDashoffset = -offset;
     }
 
     function clearGauge() {
-        const ring = document.querySelector('.gauge-conic-ring');
-        ring.style.setProperty('--progress-deg', '0deg');
+        document.getElementById('gauge-progress-circle').style.strokeDashoffset = '0';
     }
 
     function updateTips(value) {
@@ -546,13 +542,13 @@
         clearGauge();
 
         document.getElementById('update-badge').textContent =
-            message || 'داده معتبر امروز در دسترس نیست.';
+            message || 'داده روز جاری در دسترس نیست.';
 
         const list = document.getElementById('safety-tips');
         list.replaceChildren();
 
         [
-            'داده معتبر برای امروز در دسترس نیست.',
+            'داده روز جاری در دسترس نیست.',
             'مقدار روزهای گذشته یا آینده به‌جای مقدار امروز نمایش داده نمی‌شود.',
             'در صورت مشاهده حریق، از محل فاصله بگیرید و با ۱۲۵ تماس بگیرید.'
         ].forEach(text => {
@@ -626,7 +622,7 @@
         }
     }
 
-    function renderToday(data, validToday, sourceLabel) {
+    function renderToday(data, validToday) {
         cancelTodayDataRetry();
         const value = validToday.validated.mean;
         const pill = document.getElementById('risk-pill');
@@ -637,11 +633,11 @@
         updateGauge(value);
         updateTips(value);
 
-        const generatedAt = formatPersianDateTime(data.generated_at_tehran);
+        const generatedAt = formatPersianUpdateDate(data.generated_at_tehran);
         document.getElementById('update-badge').textContent =
             generatedAt !== 'نامشخص'
-                ? `${sourceLabel} | آخرین به‌روزرسانی: ${generatedAt}`
-                : sourceLabel;
+                ? `آخرین به‌روزرسانی: ${generatedAt}`
+                : '';
     }
 
     async function loadData() {
@@ -656,11 +652,9 @@
 
         // داده ذخیره‌شده فقط در صورتی نمایش داده می‌شود که متعلق به امروز تهران و کامل باشد.
         if (cachedToday) {
-            renderToday(cachedData, cachedToday, 'داده معتبر امروز');
-            document.getElementById('update-badge').textContent =
-                'داده امروز نمایش داده می‌شود؛ در حال بررسی نسخه جدید...';
+            renderToday(cachedData, cachedToday);
         } else {
-            showUnavailable('در حال بررسی داده معتبر امروز...');
+            showUnavailable('در حال بررسی داده‌های امروز...');
         }
 
         try {
@@ -688,31 +682,29 @@
             // نسخه آنلاین نیز باید داده کامل و متعلق به امروز تهران داشته باشد.
             if (!latestToday) {
                 if (cachedToday) {
-                    document.getElementById('update-badge').textContent =
-                        'داده معتبر امروز نمایش داده می‌شود؛ نسخه آنلاین هنوز داده کامل امروز ندارد.';
+                    scheduleTodayDataRetry();
                 } else {
-                    showUnavailable('داده معتبر و کامل برای امروز در دسترس نیست؛ بررسی خودکار ادامه پیدا می‌کند.');
+                    showUnavailable('داده کامل روز جاری در دسترس نیست؛ بررسی خودکار ادامه پیدا می‌کند.');
                     scheduleTodayDataRetry();
                 }
                 return;
             }
 
             saveCache(latestData);
-            renderToday(latestData, latestToday, 'داده معتبر امروز');
+            renderToday(latestData, latestToday);
         } catch (error) {
             console.error('خطا در دریافت یا اعتبارسنجی داده:', error);
 
-            // داده کش‌شده فقط برای همان تاریخ درخواست معتبر است؛ روز قبل هرگز به‌عنوان امروز نشان داده نمی‌شود.
+            // داده کش‌شده فقط برای همان تاریخ معتبر است؛ روز قبل به‌عنوان امروز نشان داده نمی‌شود.
             if (getTehranISODate() !== requestDate) {
                 showUnavailable('روز جدید در تهران آغاز شده است؛ داده همان روز پس از دریافت نمایش داده می‌شود.');
                 return;
             }
 
             if (cachedToday) {
-                document.getElementById('update-badge').textContent =
-                    'داده معتبر امروز از حافظه مرورگر نمایش داده می‌شود؛ بررسی نسخه آنلاین ناموفق بود.';
+                scheduleTodayDataRetry();
             } else {
-                showUnavailable('داده معتبر امروز در دسترس نیست؛ مقدار روزهای دیگر نمایش داده نمی‌شود. بررسی خودکار ادامه پیدا می‌کند.');
+                showUnavailable('داده روز جاری در دسترس نیست؛ مقدار روزهای دیگر نمایش داده نمی‌شود. بررسی خودکار ادامه پیدا می‌کند.');
                 scheduleTodayDataRetry();
             }
         } finally {
