@@ -1,1 +1,85 @@
+name: Test Derak REST Full-Area Forecast
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "Start date in Tehran time (YYYY-MM-DD); leave empty for today"
+        required: false
+        type: string
+      days_ahead:
+        description: "Forecast range in days (0-14)"
+        required: true
+        default: "10"
+        type: string
+
+  schedule:
+    # 06:00 Iran time
+    - cron: "30 2 * * *"
+
+    # 09:00, 12:00, 15:00 and 18:00 Iran time
+    - cron: "30 5,8,11,14 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: derak-rest-full-area-forecast
+  cancel-in-progress: false
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests geopandas shapely pyproj
+
+      - name: Fetch and aggregate full-area forecast
+        env:
+          TARGET_DATE: ${{ inputs.target_date }}
+          DAYS_AHEAD: ${{ inputs.days_ahead || '10' }}
+          TZ: Asia/Tehran
+        run: |
+          python scripts/test_derak_fwi_rest_full_area.py
+
+      - name: Upload forecast reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: derak-rest-full-area-forecast
+          path: |
+            data/derak_fwi_forecast.json
+            data/derak_fwi_forecast.csv
+            data/derak_fwi_forecast_points.csv
+            data/derak_fwi_forecast_errors.csv
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Commit updated forecast archive
+        if: success() && github.event_name == 'schedule'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/derak_fwi_forecast.json
+          git add data/derak_fwi_forecast.csv
+
+          if ! git diff --cached --quiet; then
+            git commit -m "Update Derak REST forecast archive"
+            git push
+          else
+            echo "No forecast archive changes to commit."
+          fi
 
