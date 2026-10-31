@@ -1,0 +1,72 @@
+{
+    "generated_at": "2026-10-31 22:02:37",
+    "timezone": "Asia/Tehran",
+    "forecast": [
+        {
+            "date": "2026-10-31",
+            "mean_fwi": 20.0,
+            "risk_level_fa": "متوسط",
+            "risk_color": "#EAB308"
+        },
+        {
+            "date": "2026-11-01",
+            "mean_fwi": 21.5,
+            "risk_level_fa": "متوسط",
+            "risk_color": "#EAB308"
+        },
+        {
+            "date": "2026-11-02",
+            "mean_fwi": 23.0,
+            "risk_level_fa": "متوسط",
+            "risk_color": "#EAB308"
+        },
+        {
+            "date": "2026-11-03",
+            "mean_fwi": 24.5,
+            "risk_level_fa": "متوسط",
+            "risk_color": "#EAB308"
+        },
+        {
+            "date": "2026-11-04",
+            "mean_fwi": 26.0,
+            "risk_level_fa": "زیاد",
+            "risk_color": "#F97316"
+        },
+        {
+            "date": "2026-11-05",
+            "mean_fwi": 27.5,
+            "risk_level_fa": "زیاد",
+            "risk_color": "#F97316"
+        },
+        {
+            "date": "2026-11-06",
+            "mean_fwi": 29.0,
+            "risk_level_fa": "زیاد",
+            "risk_color": "#F97316"
+        },
+        {
+            "date": "2026-11-07",
+            "mean_fwi": 30.5,
+            "risk_level_fa": "زیاد",
+            "risk_color": "#F97316"
+        },
+        {
+            "date": "2026-11-08",
+            "mean_fwi": 32.0,
+            "risk_level_fa": "زیاد",
+            "risk_color": "#F97316"
+        },
+        {
+            "date": "2026-11-09",
+            "mean_fwi": 33.5,
+            "risk_level_fa": "زیاد",
+            "risk_color": "#F97316"
+        },
+        {
+            "date": "2026-11-10",
+            "mean_fwi": 35.0,
+            "risk_level_fa": "زیاد",
+            "risk_color": "#F97316"
+        }
+    ]
+}
