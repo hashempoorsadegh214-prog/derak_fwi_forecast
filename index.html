@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سامانه هوشمند هشدار خطر حریق کوهستان دراک</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 shadow-sm py-6">
+        <div class="max-w-5xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-red-600 flex items-center gap-2">
+                    🔥 سامانه هوشمند هشدار خطر حریق دراک
+                </h1>
+                <p class="text-sm text-slate-500 mt-1">مدیریت و پیش‌بینی وضعیت خطر آتش‌سوزی مبتنی بر شاخص FWI</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="forecast.html" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow">
+                    مشاهده نقشه و پیش‌بینی زنده
+                </a>
+                <a href="https://github.com/hashempoorsadegh214-prog/derak_fwi_forecast" target="_blank" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow">
+                    مخزن گیت‌هاب
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-4 py-10 w-full flex-grow">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <!-- Card 1 -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div class="text-red-500 text-2xl mb-2">📍</div>
+                <h3 class="font-bold text-lg mb-1">محدوده مطالعاتی</h3>
+                <p class="text-sm text-slate-600">کوهستان دراک شیراز با مساحت بیش از ۶۳ کیلومتر مربع و سیستم پایش شبکه‌ای.</p>
+            </div>
+            <!-- Card 2 -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div class="text-blue-500 text-2xl mb-2">⚙️</div>
+                <h3 class="font-bold text-lg mb-1">به‌روزرسانی خودکار</h3>
+                <p class="text-sm text-slate-600">اجرای خودکار محاسبات از طریق GitHub Actions و مدل‌های هواشناسی.</p>
+            </div>
+            <!-- Card 3 -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div class="text-emerald-500 text-2xl mb-2">📊</div>
+                <h3 class="font-bold text-lg mb-1">خروجی‌های ساختاریافته</h3>
+                <p class="text-sm text-slate-600">دسترسی مستقیم به داده‌ها در قالب‌های استاندارد JSON و CSV.</p>
+            </div>
+        </div>
+
+        <!-- Files Section -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h2 class="text-xl font-bold mb-4 border-b pb-3">فایل‌ها و پیوندهای مهم سامانه</h2>
+            <ul class="divide-y divide-slate-100 text-sm">
+                <li class="py-3 flex justify-between items-center">
+                    <span class="font-medium text-slate-700">رابط کاربری پیش‌بینی (داشبورد)</span>
+                    <a href="forecast.html" class="text-red-600 hover:underline font-medium">forecast.html</a>
+                </li>
+                <li class="py-3 flex justify-between items-center">
+                    <span class="font-medium text-slate-700">داده‌های پیش‌بینی (JSON)</span>
+                    <a href="data/derak_fwi_forecast.json" target="_blank" class="text-blue-600 hover:underline font-medium">data/derak_fwi_forecast.json</a>
+                </li>
+                <li class="py-3 flex justify-between items-center">
+                    <span class="font-medium text-slate-700">داده‌های پیش‌بینی (CSV)</span>
+                    <a href="data/derak_fwi_forecast.csv" target="_blank" class="text-blue-600 hover:underline font-medium">data/derak_fwi_forecast.csv</a>
+                </li>
+                <li class="py-3 flex justify-between items-center">
+                    <span class="font-medium text-slate-700">مرز جغرافیایی منطقه (GeoJSON)</span>
+                    <a href="Derak_Mountain.geojson" target="_blank" class="text-blue-600 hover:underline font-medium">Derak_Mountain.geojson</a>
+                </li>
+            </ul>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+        <p>سامانه هوشمند پایش و پیش‌بینی خطر حریق کوهستان دراک | توسعه‌یافته برای پژوهش‌های آمایش سرزمین</p>
+    </footer>
+
+</body>
+</html>
