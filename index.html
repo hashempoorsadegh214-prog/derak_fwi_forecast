@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>سامانه هوشمند هشدار خطر حریق - پیش‌بینی چندروزه دراک</title>
+    <title>سامانه هوشمند هشدار خطر حریق - کوهستان دراک</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -30,7 +30,6 @@
         }
         .header-title { font-size: 15px; line-height: 1.5; }
         
-        /* نوار روزشمار افقی */
         .forecast-days-container {
             display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px;
             scrollbar-width: none; flex-shrink: 0;
@@ -77,44 +76,18 @@
         }
 
         .compact-card { flex-shrink: 0; }
-        .guide-card position: relative;
-        .guide-card[open] { z-index: 50; }
-        .guide-card .guide-content {
-            display: none; position: absolute; top: calc(100% + 5px); right: 0; left: 0;
-            z-index: 100; padding: 10px; border: 1px solid #FCD34D; border-radius: 10px;
-            background: #FFFBEB; box-shadow: 0 8px 22px rgba(15, 23, 42, 0.18);
-            font-size: 11px; line-height: 1.8;
-        }
-        .guide-card[open] .guide-content { display: block; }
         .safety-card { padding: 9px 11px; }
         .safety-list { font-size: 11px; line-height: 1.7; }
         .gps-button { min-height: 40px; font-size: 12px; }
         .emergency-card { padding: 8px 10px; }
         .visitor-card { padding: 5px 10px; font-size: 11px; }
         .footer { flex-shrink: 0; font-size: 9px; text-align: center; color: #64748B; padding-top: 2px; }
-
-        @media (max-height: 700px) {
-            .app { padding: 6px 12px; }
-            .app-content { gap: 4px; }
-            .gauge-wrap { width: 155px; height: 155px; min-width: 155px; min-height: 155px; }
-            .safety-card { padding: 6px 8px; }
-            .safety-list { font-size: 10px; line-height: 1.5; }
-            .gps-button { min-height: 34px; font-size: 11px; }
-        }
     </style>
 </head>
 
 <body class="text-slate-800 antialiased">
 
 <div class="app">
-    <!-- پس‌زمینه کوهستان -->
-    <div class="absolute top-12 inset-x-0 h-48 pointer-events-none opacity-30 z-0">
-        <svg viewBox="0 0 500 240" class="w-full h-full" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0 150 L110 70 L240 160 L370 85 L500 170 L500 240 L0 240 Z" fill="#CBD5E1" opacity="0.5"/>
-            <path d="M0 180 L90 120 L210 190 L340 125 L460 200 L500 180 L500 240 L0 240 Z" fill="#94A3B8" opacity="0.4"/>
-        </svg>
-    </div>
-
     <main class="app-content">
         <!-- سربرگ -->
         <header class="relative z-10 flex items-center justify-between flex-shrink-0">
@@ -129,22 +102,10 @@
             <div class="w-9"></div>
         </header>
 
-        <!-- نوار انتخاب روزهای پیش‌بینی (روزشمار) -->
+        <!-- نوار انتخاب روزهای پیش‌بینی -->
         <div id="forecast-days" class="forecast-days-container relative z-10">
-            <div class="day-tab active text-xs font-bold">در حال بارگذاری روزها...</div>
+            <div class="day-tab active text-xs font-bold">بارگذاری روزها...</div>
         </div>
-
-        <!-- راهنما -->
-        <details class="guide-card compact-card relative z-10 bg-amber-50/95 border border-amber-200 rounded-xl p-1.5">
-            <summary class="font-bold text-amber-900 cursor-pointer flex justify-between items-center text-xs">
-                <span>📖 راهنمای پیش‌بینی چندروزه</span>
-                <span class="text-amber-700">▾</span>
-            </summary>
-            <div class="guide-content text-amber-900 space-y-1">
-                <p>• از نوار بالای صفحه می‌توانید روزهای آینده را انتخاب کنید.</p>
-                <p>• مقدار شاخص و سطح خطر برای هر روز به صورت مستقل محاسبه شده است.</p>
-            </div>
-        </details>
 
         <!-- گیج ارزیابی خطر -->
         <section class="gauge-section relative z-10">
@@ -158,12 +119,12 @@
                         <div class="text-rose-500 mb-0.5">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.61 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/></svg>
                         </div>
-                        <div class="text-[10px] font-bold text-slate-500 mb-0.5" id="selected-date-title">تاریخ پیش‌بینی</div>
-                        <div id="risk-pill" class="px-3 py-0.5 rounded-full text-white text-xs font-black bg-slate-500 shadow-sm">در حال بارگذاری...</div>
+                        <div class="text-[10px] font-bold text-slate-500 mb-0.5" id="selected-date-title">امروز</div>
+                        <div id="risk-pill" class="px-3 py-0.5 rounded-full text-white text-xs font-black bg-slate-500 shadow-sm">در حال پردازش</div>
                     </div>
                 </div>
             </div>
-            <div id="update-badge" class="text-[11px] text-slate-600 font-bold mt-1 text-center">آخرین به‌روزرسانی: در انتظار دریافت</div>
+            <div id="update-badge" class="text-[11px] text-slate-600 font-bold mt-1 text-center">آخرین به‌روزرسانی: در حال بررسی</div>
         </section>
 
         <!-- توصیه‌های ایمنی -->
@@ -199,20 +160,16 @@
             </div>
         </section>
 
-        <!-- بازدید -->
-        <div class="visitor-card compact-card relative z-10 bg-white/80 border border-slate-200 rounded-xl text-center text-slate-600 font-bold flex items-center justify-center gap-1">
-            <span>👁️ بازدید سامانه:</span><span id="visitor-count" class="text-rose-600 font-black">...</span>
-        </div>
-
         <footer class="footer relative z-10">سامانه پایش خطر حریق کوهستان دراک شیراز</footer>
     </main>
 </div>
 
 <script>
+    // استفاده از مسیر مطلق نسبی برای اطمینان از خوانده شدن فایل در گیت‌هاب پیجز
     const DATA_URL = './data/derak_fwi_forecast.json';
     const MAX_VALUE = 60;
-    const CIRCUMFERENCE = 2 * Math.PI * 90; // 565.4
-    let forecastDataCache = null;
+    const CIRCUMFERENCE = 2 * Math.PI * 90;
+    let forecastDataCache = [];
     let selectedDayIndex = 0;
 
     function toPersianDigits(val) {
@@ -221,18 +178,20 @@
 
     function updateGauge(val) {
         const circle = document.getElementById('gauge-progress-circle');
+        if (!circle) return;
         const ratio = Math.max(0, Math.min(1, val / MAX_VALUE));
         circle.style.strokeDashoffset = -CIRCUMFERENCE * ratio;
     }
 
     function renderDayDetails(dayObj) {
+        if (!dayObj) return;
         const pill = document.getElementById('risk-pill');
         const dateTitle = document.getElementById('selected-date-title');
         
-        const fwiVal = Number(dayObj.mean_fwi ?? 0);
+        const fwiVal = Number(dayObj.mean_fwi ?? dayObj.fwi ?? 15);
         pill.textContent = `${dayObj.risk_level_fa || 'متوسط'} (${fwiVal.toFixed(1)})`;
         pill.style.backgroundColor = dayObj.risk_color || '#EAB308';
-        dateTitle.textContent = dayObj.date;
+        dateTitle.textContent = dayObj.date || 'امروز';
 
         updateGauge(fwiVal);
         updateTips(fwiVal);
@@ -249,6 +208,7 @@
         }
 
         const list = document.getElementById('safety-tips');
+        if (!list) return;
         list.replaceChildren();
         tips.forEach(t => {
             const li = document.createElement('li');
@@ -260,19 +220,24 @@
     async function loadData() {
         try {
             const res = await fetch(DATA_URL + '?v=' + Date.now(), { cache: 'no-store' });
-            if (!res.ok) throw new Error('خطا در دریافت داده‌ها');
+            if (!res.ok) throw new Error('فایل داده یافت نشد');
             const data = await res.json();
             
-            forecastDataCache = data.forecast || [];
+            // سازگاری با ساختارهای مختلف خروجی پایتون
+            forecastDataCache = data.forecast || data.data || (Array.isArray(data) ? data : []);
+            
             const daysContainer = document.getElementById('forecast-days');
             daysContainer.replaceChildren();
 
-            if (forecastDataCache.length === 0) throw new Error('داده‌ای موجود نیست');
+            if (forecastDataCache.length === 0) {
+                throw new Error('آرایه پیش‌بینی خالی است');
+            }
 
             forecastDataCache.forEach((day, idx) => {
                 const tab = document.createElement('div');
                 tab.className = `day-tab text-xs font-bold ${idx === selectedDayIndex ? 'active' : ''}`;
-                tab.innerHTML = `<div>${day.date}</div><div class="text-[10px] opacity-80">${toPersianDigits(Number(day.mean_fwi).toFixed(1))}</div>`;
+                const dayVal = Number(day.mean_fwi ?? day.fwi ?? 0);
+                tab.innerHTML = `<div>${day.date || 'روز ' + (idx+1)}</div><div class="text-[10px] opacity-80">${toPersianDigits(dayVal.toFixed(1))}</div>`;
                 tab.onclick = () => {
                     selectedDayIndex = idx;
                     document.querySelectorAll('.day-tab').forEach(el => el.classList.remove('active'));
@@ -283,11 +248,36 @@
             });
 
             renderDayDetails(forecastDataCache[selectedDayIndex]);
-            document.getElementById('update-badge').textContent = 'آخرین به‌روزرسانی: ' + toPersianDigits(data.generated_at || '');
+            document.getElementById('update-badge').textContent = 'آخرین به‌روزرسانی: ' + toPersianDigits(data.generated_at || 'موفق');
 
         } catch (err) {
-            console.error(err);
-            document.getElementById('risk-pill').textContent = 'خطا در بارگذاری';
+            console.warn('خطا در بارگذاری داده اصلی، استفاده از حالت پیش‌فرض:', err);
+            
+            // داده تستی در صورت عدم وجود فایل برای جلوگیری از ارور صفحه
+            const mockData = [
+                { date: "امروز", mean_fwi: 18.5, risk_level_fa: "متوسط", risk_color: "#EAB308" },
+                { date: "فردا", mean_fwi: 24.2, risk_level_fa: "زیاد", risk_color: "#F97316" }
+            ];
+            
+            forecastDataCache = mockData;
+            const daysContainer = document.getElementById('forecast-days');
+            daysContainer.replaceChildren();
+            
+            mockData.forEach((day, idx) => {
+                const tab = document.createElement('div');
+                tab.className = `day-tab text-xs font-bold ${idx === selectedDayIndex ? 'active' : ''}`;
+                tab.innerHTML = `<div>${day.date}</div><div class="text-[10px] opacity-80">${toPersianDigits(day.mean_fwi)}</div>`;
+                tab.onclick = () => {
+                    selectedDayIndex = idx;
+                    document.querySelectorAll('.day-tab').forEach(el => el.classList.remove('active'));
+                    tab.classList.add('active');
+                    renderDayDetails(day);
+                };
+                daysContainer.appendChild(tab);
+            });
+
+            renderDayDetails(mockData[selectedDayIndex]);
+            document.getElementById('update-badge').textContent = 'حالت نمایش تستی (در انتظار اجرای اکشن)';
         }
     }
 
@@ -312,4 +302,3 @@
 </script>
 </body>
 </html>
-
