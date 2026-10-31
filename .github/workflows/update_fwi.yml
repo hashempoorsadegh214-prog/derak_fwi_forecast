@@ -77,7 +77,7 @@ jobs:
           git add data/derak_fwi_forecast.csv
 
           if ! git diff --cached --quiet; then
-            git commit -m "Update Derak REST forecast archive (Manual/Scheduled)"
+            git commit -m "Update Derak REST forecast archive"
             git push
           else
             echo "No forecast archive changes to commit."
