@@ -1,11 +1,11 @@
 {
-  "generated_at_tehran": "2026-10-31T22:16:20.677417+03:30",
+  "generated_at_tehran": "2026-10-31T22:29:41.931887+03:30",
   "source": "https://api.effis.emergency.copernicus.eu/rest/2/burntareas/charts/wms",
   "model": "ecmwf",
   "boundary_file": "Derak_Mountain.geojson",
   "grid_step_degrees": 0.008,
   "requested_start_date": "2026-10-31",
-  "requested_end_date": "2026-11-10",
+  "requested_end_date": "2026-11-09",
   "expected_points": 89,
   "successful_observation_count": 890,
   "failed_point_requests": 0,
@@ -109,16 +109,6 @@
       "min_fwi": 6.580291,
       "max_fwi": 10.99969,
       "complete": true
-    },
-    {
-      "date": "2026-11-10",
-      "expected_points": 89,
-      "valid_points": 0,
-      "coverage_percent": 0.0,
-      "mean_fwi": null,
-      "min_fwi": null,
-      "max_fwi": null,
-      "complete": false
     }
   ],
   "observations": [
