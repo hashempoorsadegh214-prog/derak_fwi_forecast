@@ -68,7 +68,7 @@ jobs:
           retention-days: 30
 
       - name: Commit updated forecast archive
-        if: success() && github.event_name == 'schedule'
+        if: success() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -82,4 +82,3 @@ jobs:
           else
             echo "No forecast archive changes to commit."
           fi
-
