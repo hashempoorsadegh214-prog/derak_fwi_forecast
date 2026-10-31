@@ -351,6 +351,7 @@
     const CIRCUMFERENCE = 2 * Math.PI * 89;
     const REQUIRED_COVERAGE_PERCENT = 100;
     const TEHRAN_TIME_ZONE = 'Asia/Tehran';
+
     let lastObservedTehranDate = null;
     let midnightCheckTimer = null;
     let datePollTimer = null;
@@ -371,12 +372,13 @@
 
         const values = {};
         parts.forEach(part => { values[part.type] = part.value; });
+
         return `${values.year}-${values.month}-${values.day}`;
     }
 
-    // زمان‌بندی بررسی تغییر روز بر اساس ساعت رسمی تهران، نه ساعت دستگاه کاربر.
     function getMillisecondsUntilTehranMidnight() {
         const now = new Date();
+
         const parts = new Intl.DateTimeFormat('en-GB', {
             timeZone: TEHRAN_TIME_ZONE,
             hour: '2-digit',
@@ -387,10 +389,11 @@
 
         const clock = {};
         parts.forEach(part => { clock[part.type] = Number(part.value); });
-        const elapsed = ((clock.hour * 60 + clock.minute) * 60 + clock.second) * 1000
-            + now.getMilliseconds();
 
-        // یک ثانیه پس از نیمه‌شب بررسی می‌کنیم تا تاریخ روز جدید قطعی شده باشد.
+        const elapsed =
+            ((clock.hour * 60 + clock.minute) * 60 + clock.second) * 1000 +
+            now.getMilliseconds();
+
         return Math.max(1000, 86400000 - elapsed + 1000);
     }
 
@@ -444,7 +447,6 @@
         lastObservedTehranDate = getTehranISODate();
         scheduleTehranMidnightCheck();
 
-        // پشتیبان برای زمانی که مرورگر در پس‌زمینه یا حالت خواب بوده است.
         if (datePollTimer !== null) clearInterval(datePollTimer);
         datePollTimer = setInterval(handleTehranDateChange, 30000);
 
@@ -455,14 +457,21 @@
         window.addEventListener('focus', handleTehranDateChange);
     }
 
-    function formatPersianUpdateDate(isoDateTime) {
-        if (!isoDateTime) return 'نامشخص';
+    // تبدیل تاریخ میلادی رکورد پیش‌بینی به تاریخ شمسی
+    // این تابع از generated_at استفاده نمی‌کند.
+    function formatPersianForecastDate(isoDate) {
+        const match = String(isoDate || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!match) return 'نامشخص';
 
-        const date = new Date(isoDateTime);
+        const year = Number(match[1]);
+        const month = Number(match[2]);
+        const day = Number(match[3]);
+
+        const date = new Date(Date.UTC(year, month - 1, day, 12));
         if (Number.isNaN(date.getTime())) return 'نامشخص';
 
         return new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
-            timeZone: TEHRAN_TIME_ZONE,
+            timeZone: 'UTC',
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -492,7 +501,7 @@
         const ratio = Math.max(0, Math.min(1, Number(value) / MAX_VALUE));
         const offset = CIRCUMFERENCE * ratio;
 
-        // حرکت گیج از نقطه ساعت ۱۲ و در جهت عقربه‌های ساعت
+        // حرکت گیج از ساعت ۱۲ در جهت عقربه‌های ساعت
         maskCircle.style.strokeDashoffset = -offset;
     }
 
@@ -597,7 +606,12 @@
             throw new Error('پوشش داده‌های روز جاری کامل نیست.');
         }
 
-        return { mean, validPoints, expectedPoints, coverage };
+        return {
+            mean,
+            validPoints,
+            expectedPoints,
+            coverage
+        };
     }
 
     function getValidToday(data, todayISO = getTehranISODate()) {
@@ -611,6 +625,7 @@
 
         try {
             return {
+                summary,
                 validated: validateDateSummary(summary, todayISO)
             };
         } catch (error) {
@@ -632,7 +647,7 @@
         try {
             localStorage.setItem(CACHE_KEY, JSON.stringify(data));
         } catch (_) {
-            // اگر ذخیره‌سازی مرورگر در دسترس نباشد، داده آنلاین نمایش داده می‌شود.
+            // در صورت نبود امکان ذخیره‌سازی، داده آنلاین همچنان نمایش داده می‌شود.
         }
     }
 
@@ -648,12 +663,13 @@
         updateGauge(value);
         updateTips(value);
 
-        // فقط تاریخ نمایش داده می‌شود؛ ساعت به‌روزرسانی نمایش داده نمی‌شود.
-        const generatedAt = formatPersianUpdateDate(data.generated_at_tehran);
+        // تاریخ واقعی پیش‌بینی انتخاب‌شده نمایش داده می‌شود.
+        // تاریخ تولید فایل آرشیو در نمایش صفحه استفاده نمی‌شود.
+        const forecastDate = formatPersianForecastDate(validToday.summary.date);
 
         document.getElementById('update-badge').textContent =
-            generatedAt !== 'نامشخص'
-                ? `آخرین به‌روزرسانی: ${generatedAt}`
+            forecastDate !== 'نامشخص'
+                ? `تاریخ پیش‌بینی: ${forecastDate}`
                 : '';
     }
 
@@ -664,7 +680,7 @@
         const refreshButton = document.getElementById('refresh-button');
         refreshButton.disabled = true;
 
-        // مرحله اول: بررسی فوری آرشیو ذخیره‌شده در مرورگر
+        // ابتدا داده ذخیره‌شده همان روز نمایش داده می‌شود.
         const cachedData = readCache();
         const cachedToday = getValidToday(cachedData, requestDate);
 
@@ -675,7 +691,7 @@
         }
 
         try {
-            // مرحله دوم: دریافت نسخه جدید آرشیو از سرور
+            // سپس نسخه جدید آرشیو از سرور دریافت می‌شود.
             const response = await fetch(DATA_URL + '?v=' + Date.now(), {
                 cache: 'no-store'
             });
@@ -686,7 +702,7 @@
 
             const latestData = await response.json();
 
-            // اگر هنگام دریافت فایل نیمه‌شب گذشته باشد، تاریخ دوباره بررسی شود.
+            // اگر هنگام دریافت فایل روز تهران تغییر کرده باشد، درخواست دوباره اجرا می‌شود.
             const currentDate = getTehranISODate();
 
             if (currentDate !== requestDate) {
@@ -698,12 +714,11 @@
                 return loadData();
             }
 
-            // مرحله سوم: فقط رکورد تاریخ جاری انتخاب می‌شود.
+            // انتخاب رکورد روز جاری؛ بدون تاریخ ثابت
             const latestToday = getValidToday(latestData, requestDate);
 
             if (!latestToday) {
                 if (cachedToday) {
-                    // داده معتبر Cache حفظ می‌شود؛ نسخه آنلاین بعداً دوباره بررسی خواهد شد.
                     scheduleTodayDataRetry();
                 } else {
                     showUnavailable('داده کامل روز جاری در دسترس نیست؛ بررسی خودکار ادامه پیدا می‌کند.');
@@ -713,21 +728,20 @@
                 return;
             }
 
-            // مرحله چهارم: ذخیره آرشیو جدید و جایگزینی داده روی گیج
+            // ذخیره نسخه جدید و جایگزینی مقدار گیج
             saveCache(latestData);
             renderToday(latestData, latestToday);
 
         } catch (error) {
             console.error('خطا در دریافت یا اعتبارسنجی داده:', error);
 
-            // اگر روز عوض شده باشد، اطلاعات روز قبل نمایش داده نمی‌شود.
             if (getTehranISODate() !== requestDate) {
                 showUnavailable('روز جدید آغاز شده است؛ داده همان روز پس از دریافت نمایش داده می‌شود.');
                 return;
             }
 
+            // در صورت خطای شبکه، فقط Cache معتبر همان روز باقی می‌ماند.
             if (cachedToday) {
-                // در صورت خطای شبکه، داده معتبر همان روز Cache باقی می‌ماند.
                 scheduleTodayDataRetry();
             } else {
                 showUnavailable('داده روز جاری در دسترس نیست؛ بررسی خودکار ادامه پیدا می‌کند.');
@@ -842,7 +856,6 @@
         }
     }
 
-    // اجرای کنترل تاریخ تهران و بارگذاری اولیه اطلاعات
     startTehranDateWatcher();
     loadData();
     initVisitorCounter();
