@@ -266,6 +266,50 @@
             .emergency-card { padding: 4px 7px; }
             .gps-button { min-height: 33px; font-size: 11px; }
         }
+
+        /* اصلاح ظریف فضای موبایل: فقط اندازه گیج و منوی راهنما */
+        .app .gauge-wrap {
+            width: min(57vw, 220px, 28vh);
+            height: min(57vw, 220px, 28vh);
+            min-width: 170px;
+            min-height: 170px;
+        }
+
+        .app .guide-card {
+            padding: 6px 9px;
+        }
+
+        .app .guide-card summary {
+            min-height: 22px;
+            font-size: 12px;
+        }
+
+        @media (max-height: 760px) {
+            .app .gauge-wrap {
+                width: min(51vw, 200px, 26vh);
+                height: min(51vw, 200px, 26vh);
+                min-width: 165px;
+                min-height: 165px;
+            }
+        }
+
+        @media (max-height: 650px) {
+            .app .gauge-wrap {
+                width: 160px;
+                height: 160px;
+                min-width: 160px;
+                min-height: 160px;
+            }
+        }
+
+        @media (max-height: 560px) {
+            .app .gauge-wrap {
+                width: 140px;
+                height: 140px;
+                min-width: 140px;
+                min-height: 140px;
+            }
+        }
     </style>
 </head>
 
